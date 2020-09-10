@@ -2,28 +2,25 @@
 %Written by: J. A. Nghiem
 %Last edited: August 25, 2020
 
-%Summary: This script runs the floodplain deposition model (see section
-%Floodplain sedimentation model in supplement).
+%Summary: This script runs the floodplain deposition model to determine percent mud
+%(see Fig. 3C and supplement for more details).
 
 clear
 
 %Model inputs, roughly scaled to Mississippi River
-L=30000; %m, half-floodplain width to discretize spatial domain
-l=1300; %distance over which to compute dimensionless floodplains statistics, take to be advection length of sand (m)
-n=100000; %number of space steps to discretize floodplain
+L=220; %m, half-floodplain width over which to evaluate model, based on twice the sand advection length
+n=1000; %number of space steps to discretize floodplain
 q=2.3; %m^2/s, overbank per-width discharge
 sed_density=2650; %kg/m^3, sediment density
 f_density=1000; %kg/m^3, fluid density (water)
 g=9.81; %m/s^2, gravitational acceleration
-t_nofloc=1; %time ratio to scale deposition rates to retrieve deposit thickness in un-flocculated case
-t_floc=0.53; %time ratio to scale deposition rates to retrieve deposit thickness in flocculated case
-%these time ratios ensure floodplain-integrated deposit thickness is
-%identical in both flocculated and un-flocculated cases
+%Set of floc settling velocities and their corresponding grain size
+%flocculation thresholds
 ws_floc=[0.00006719 0.00034 0.001216]; %m/s, floc settling velocities
 thresh_floc=[9.127E-06 2.053E-5 3.882E-5]; %m, flocculated grain size threshold (all sizes below are flocculated)
 %ws_floc and thresh_floc are vectors of the same length representing
 %different flocculation scenarios
-%here, they represent lower, average, and upper scenarios for floc settling
+%here, they represent lower (16th percent quantile), average, and upper (84th percent quantile) scenarios for floc settling
 %velocity based on estimates by Lamb et al., 2020
 
 %Begin calculations below
@@ -121,11 +118,6 @@ model_results_nofloc_normalized=model_results_nofloc./max_rate;
 %columns are different locations (x=0 is at the channel, move away from
 %channel as x increases)
 
-%Multiply by time ratio factor to have same floodplain-integrated deposit
-%thicknesses
-model_results_floc_normalized=model_results_floc_normalized*t_floc;
-model_results_nofloc_normalized=model_results_nofloc_normalized*t_nofloc;
-
 %Calculate mud fraction (relative to sand)
 mud_sizes=(d<=62.5*10^(-6)); %determine which grain sizes are mud (smaller than 62.5 microns)
 
@@ -137,19 +129,20 @@ model_results_aggregated=sum(model_results_combined, 1);
 %aggregate mud sizes
 mud_aggregated=sum(model_results_combined(mud_sizes,:,:), 1);
 
-%divide matrices to calculate mud fraction
-mud_fraction_combined=mud_aggregated./model_results_aggregated;
+%divide matrices to calculate mud fraction, and multiply by 100 to get
+%percent
+mud_fraction_combined=100*mud_aggregated./model_results_aggregated;
 %break out again into flocculated and un-flocculated cases
 mud_fraction_floc=mud_fraction_combined(:,:,1:length(ws_floc));
 mud_fraction_nofloc=mud_fraction_combined(:,:,end);
 
-%Visualize mud fraction as a function of distance
+%Visualize percent mud as a function of distance
 figure
 f1=plot(x, mud_fraction_floc(:,:,2), 'color', [126 47 142]./255, 'linewidth', 2); %flocculated
 hold on
 f2=plot(x, mud_fraction_nofloc, 'color', [0 114 189]./255, 'linewidth', 2); %un-flocculated
-xlim([0 250])
-ylim([0 1])
-ylabel('mud fraction')
+xlim([0 L])
+ylim([0 100])
+ylabel('percent mud (%)')
 xlabel('distance from channel (m)')
 legend([f1 f2], 'flocculated', 'un-flocculated', 'Location', 'northwest')

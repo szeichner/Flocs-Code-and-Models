@@ -1,6 +1,6 @@
 #Script to generate log-normal distributed grain size distribution
 #Written by: J. A. Nghiem
-#Last edited: August 24, 2020
+#Last edited: September 10, 2020
 
 #Summary: This script generates a log-normal grain size distribution based on input distribution parameters.
 #It creates grain size and concentration data in a user-specified number of grain size classes for input into sedimentation model.
@@ -19,7 +19,7 @@ grain_size_max <- 2 #mm, upper grain size bound of largest grain size class
 #Set expectation and standard deviation of grain size distribution
 ex <- 0.024 #mm, mean of distribution is 24 microns
 sd <- 0.1 #mm, standard deviation of distribution is 100 microns
-ssc <- 0.0002082547 #suspended sediment volumetric concentration from Mississippi River depth profiles from Jordan, 1965 
+ssc <- 1 #total suspended sediment volumetric concentration (arbitrary for the dimensionless parameters of interest)
 #ssc has units vol sediment/vol water; mass concentration is about 0.55 g/L (or kg/m^3) and divide by sediment density (assumed 2650 kg/m^3) to obtain ssc
 #Path to csv file that will be created by the script
 output_path <- here("Model", "parametric_gsd.csv")
